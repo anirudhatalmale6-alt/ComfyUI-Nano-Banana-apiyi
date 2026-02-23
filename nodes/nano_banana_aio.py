@@ -26,7 +26,7 @@ class NanoBananaAIO:
             "optional": {
                 "image_1": ("IMAGE",), "image_2": ("IMAGE",), "image_3": ("IMAGE",),
                 "image_4": ("IMAGE",), "image_5": ("IMAGE",), "image_6": ("IMAGE",),
-                "aspect_ratio": (["1:1", "2:3", "3:2", "3:4", "4:3", "4:5", "5:4", "9:16", "16:9", "21:9"], {"default": "1:1"}),
+                "aspect_ratio": (["1:1", "2:3", "3:2", "3:4", "4:3", "4:5", "5:4", "9:16", "16:9", "21:9", "Auto"], {"default": "1:1"}),
                 "image_size": (["1K", "2K", "4K"], {"default": "2K"}),
                 "temperature": ("FLOAT", {"default": 1.0, "min": 0.0, "max": 2.0, "step": 0.1}),
             }
@@ -45,12 +45,16 @@ class NanoBananaAIO:
             print(f"Warning: Using preview model {model_name} which may have unstable tool support")
             self._preview_warning_shown = True
 
+        image_config_kwargs = {
+            "image_size": image_size
+        }
+
+        if aspect_ratio != "Auto":
+            image_config_kwargs["aspect_ratio"] = aspect_ratio
+
         config = types.GenerateContentConfig(
             response_modalities=["TEXT", "IMAGE"],
-            image_config=types.ImageConfig(
-                aspect_ratio=aspect_ratio,
-                image_size=image_size
-            ),
+            image_config=types.ImageConfig(**image_config_kwargs),
             temperature=temperature,
             # FIX: Disable AFC to prevent malformed function calls
             automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True)
@@ -85,7 +89,7 @@ class NanoBananaAIO:
                 return self._handle_error("Image count must be between 1 and 10")
 
             # Validate aspect ratio
-            valid_ratios = ["1:1", "2:3", "3:2", "3:4", "4:3", "4:5", "5:4", "9:16", "16:9", "21:9"]
+            valid_ratios = ["1:1", "2:3", "3:2", "3:4", "4:3", "4:5", "5:4", "9:16", "16:9", "21:9", "Auto"]
             if aspect_ratio not in valid_ratios:
                 return self._handle_error(f"Invalid aspect ratio. Valid options: {', '.join(valid_ratios)}")
 

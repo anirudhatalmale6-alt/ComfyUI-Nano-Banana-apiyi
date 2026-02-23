@@ -2,6 +2,13 @@
 
 All notable changes to the ComfyUI_Nano_Banana project will be documented in this file.
 
+## [6.0.2] - Auto Aspect Ratio Feature #14 2026-02-23
+### Added
+- Auto Aspect Ratio Option
+  - Added "Auto" as an additional aspect ratio option in NanoBananaAIO and NanoBananaMultiTurnChat nodes
+  - When selected, the AI automatically determines the optimal aspect ratio based on prompt content
+  - Provides flexibility for users who want the model to choose the best composition
+
 ## [6.0.1] - Fix for MALFORMED_FUNCTION_CALL Issue #12 2025-11-30
 ### Fixed
 - MALFORMED_FUNCTION_CALL Error

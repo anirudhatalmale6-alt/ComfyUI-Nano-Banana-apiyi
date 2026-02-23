@@ -8,6 +8,14 @@ A set of custom nodes for ComfyUI that leverage both Google Vertex AI and Google
 
 ## What's New
 
+### Version 6.0.2 - Auto Aspect Ratio Feature
+This patch update adds the "Auto" aspect ratio option, allowing the AI to automatically determine the best aspect ratio for your generated images.
+
+#### New Features:
+
+**Fixed Issue #14:**
+Added "Auto" as an additional aspect ratio option in both NanoBananaAIO and NanoBananaMultiTurnChat nodes. When selected, the AI automatically chooses the optimal aspect ratio based on the prompt content.
+
 ### Version 6.0.1 - Fix for MALFORMED_FUNCTION_CALL Issue
 This patch update fixes the MALFORMED_FUNCTION_CALL error that occurred when using the Google GenAI SDK with the gemini-3-pro-image-preview model and Automatic Function Calling (AFC).
 
@@ -120,7 +128,7 @@ This unified node combines all features from the existing nodes into a single, p
 *   `image_count` (INT): Number of images to generate (1-10). When set to 1, behaves like NanoBananaGrounding; when >1, generates multiple sequential images (default: 1).
 *   `use_search` (BOOLEAN): Toggle to enable or disable Google Search functionality (default: `True`).
 *   `image_1` to `image_6` (IMAGE, optional): Up to six reference images. Provide at least one image for image-to-image generation.
-*   `aspect_ratio` (STRING): The output aspect ratio for the generated image. Options include: `1:1`, `2:3`, `3:2`, `3:4`, `4:3`, `4:5`, `5:4`, `9:16`, `16:9`, `21:9` (default: `1:1`).
+*   `aspect_ratio` (STRING): The output aspect ratio for the generated image. Options include: `1:1`, `2:3`, `3:2`, `3:4`, `4:3`, `4:5`, `5:4`, `9:16`, `16:9`, `21:9`, `Auto` (default: `1:1`). When set to `Auto`, the AI automatically determines the optimal aspect ratio based on the prompt content.
 *   `image_size` (STRING): The output image quality/size. Options include: `1K`, `2K`, `4K` (default: `2K`).
 *   `temperature` (FLOAT, optional): Controls the creative randomness of the output. Higher values (e.g., 1.2) are more creative, lower values (e.g., 0.5) are more deterministic.
 
@@ -135,6 +143,7 @@ This unified node combines all features from the existing nodes into a single, p
 *   `9:16` - 768x1344 (vertical/video)
 *   `16:9` - 1344x768 (horizontal/video)
 *   `21:9` - 1536x672 (ultrawide)
+*   `Auto` - AI automatically selects the best aspect ratio
 
 **Outputs:**
 
@@ -153,7 +162,7 @@ This node supports conversational image generation and editing with preserved co
 *   `model_name` (STRING): The Gemini model to use. Currently using: `gemini-3-pro-image-preview` for advanced capabilities (default: `gemini-3-pro-image-preview`).
 *   `prompt` (STRING): The text prompt for image generation or modification based on previous conversation context.
 *   `reset_chat` (BOOLEAN): Toggle to reset the conversation history and start a fresh chat session (default: `False`).
-*   `aspect_ratio` (STRING): The output aspect ratio for the generated image. Options include: `1:1`, `2:3`, `3:2`, `3:4`, `4:3`, `4:5`, `5:4`, `9:16`, `16:9`, `21:9` (default: `1:1`).
+*   `aspect_ratio` (STRING): The output aspect ratio for the generated image. Options include: `1:1`, `2:3`, `3:2`, `3:4`, `4:3`, `4:5`, `5:4`, `9:16`, `16:9`, `21:9`, `Auto` (default: `1:1`). When set to `Auto`, the AI automatically determines the optimal aspect ratio based on the prompt content.
 *   `image_size` (STRING): The output image quality/size. Options include: `1K`, `2K`, `4K` (default: `2K`).
 *   `temperature` (FLOAT): Controls the creative randomness of the output. Higher values (e.g., 1.2) are more creative, lower values (e.g., 0.5) are more deterministic (default: 1.0).
 *   `image_input` (IMAGE, optional): Initial image to start the conversation with. Use this to provide an initial image for the first interaction in a conversation.

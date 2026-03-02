@@ -2,6 +2,24 @@
 
 All notable changes to the ComfyUI_Nano_Banana project will be documented in this file.
 
+## [6.1.0] - Nano Banana 2 Support 2026-03-02
+### Added
+- Nano Banana 2 AIO Node
+  - New dedicated node for gemini-3.1-flash-image-preview model
+  - Optimized for speed and high-volume use cases
+  - Support for up to 14 reference images (10 objects + 4 characters)
+  - New extreme aspect ratios: 1:4, 4:1, 1:8, 8:1
+  - 512px (0.5K) resolution option for faster generations
+  - Google Image Search grounding alongside Web Search
+  - Maintains compatibility with existing Vertex AI and API authentication approaches
+
+- Nano Banana 2 Multi-Turn Chat Node
+  - Conversational image generation and editing with gemini-3.1-flash-image-preview
+  - Preserves conversation context across multiple executions
+  - Supports up to 14 reference images for iterative editing
+  - All Nano Banana 2 features: extreme aspect ratios, 512px resolution, Image Search
+  - Reset chat functionality to start fresh conversations
+
 ## [6.0.2] - Auto Aspect Ratio Feature #14 2026-02-23
 ### Added
 - Auto Aspect Ratio Option

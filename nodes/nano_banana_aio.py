@@ -4,7 +4,7 @@ from PIL import Image
 from google import genai
 from google.genai import types
 
-from ..core.auth import detect_approach, PROJECT_ID, LOCATION, GOOGLE_API_KEY
+from ..core.auth import detect_approach, create_client, PROJECT_ID, LOCATION, GOOGLE_API_KEY
 from ..utils.image_utils import tensor_to_pil
 
 class NanoBananaAIO:
@@ -15,7 +15,17 @@ class NanoBananaAIO:
 
     @classmethod
     def INPUT_TYPES(s):
-        model_list = ["gemini-3-pro-image-preview"]
+        model_list = [
+            "gemini-3-pro-image-preview",
+            "gemini-3-pro-image-preview-1k",
+            "gemini-3-pro-image-preview-2k",
+            "gemini-3-pro-image-preview-4k",
+            "gemini-3-pro-image-preview-oss",
+            "gemini-2.5-flash-image",
+            "gemini-2.5-flash-image-oss",
+            "nano-banana",
+            "nano-banana-pro",
+        ]
         return {
             "required": {
                 "model_name": (model_list, {"default": model_list[0]}),
@@ -128,18 +138,7 @@ class NanoBananaAIO:
 
     def _generate_single_image(self, model_name, prompt, use_search, approach, contents, aspect_ratio, image_size, temperature):
         """Generate a single image with grounding capabilities."""
-        if approach == "VERTEXAI":
-            if not PROJECT_ID or not LOCATION:
-                return self._handle_error("PROJECT_ID or LOCATION not configured in .env for Vertex AI approach")
-
-            # Use global location for nanobanana models as they may only be available on global endpoint
-            location = "global" if "gemini-3-pro" in model_name else LOCATION
-            client = genai.Client(vertexai=True, project=PROJECT_ID, location=location)
-        else:  # API approach
-            if not GOOGLE_API_KEY:
-                return self._handle_error("GOOGLE_API_KEY not configured in .env for API approach")
-
-            client = genai.Client(api_key=GOOGLE_API_KEY)
+        client = create_client(approach, model_name)
 
         # Create config using the centralized method
         config = self._create_config(aspect_ratio, image_size, temperature, use_search, model_name)
@@ -206,18 +205,7 @@ class NanoBananaAIO:
             # Create a copy of contents with the updated prompt for this iteration
             current_contents = [current_prompt] + contents[1:]  # Keep images, update prompt
 
-            if approach == "VERTEXAI":
-                if not PROJECT_ID or not LOCATION:
-                    return self._handle_error("PROJECT_ID or LOCATION not configured in .env for Vertex AI approach")
-
-                # Use global location for nanobanana models as they may only be available on global endpoint
-                location = "global" if "gemini-3-pro" in model_name else LOCATION
-                client = genai.Client(vertexai=True, project=PROJECT_ID, location=location)
-            else:  # API approach
-                if not GOOGLE_API_KEY:
-                    return self._handle_error("GOOGLE_API_KEY not configured in .env for API approach")
-
-                client = genai.Client(api_key=GOOGLE_API_KEY)
+            client = create_client(approach, model_name)
 
             # Create config using the centralized method
             config = self._create_config(aspect_ratio, image_size, temperature, use_search, model_name)

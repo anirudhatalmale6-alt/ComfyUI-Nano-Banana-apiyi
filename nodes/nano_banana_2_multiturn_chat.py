@@ -4,7 +4,7 @@ from PIL import Image
 from google import genai
 from google.genai import types
 
-from ..core.auth import detect_approach, PROJECT_ID, LOCATION, GOOGLE_API_KEY
+from ..core.auth import detect_approach, create_client, PROJECT_ID, LOCATION, GOOGLE_API_KEY
 from ..utils.image_utils import tensor_to_pil
 
 class NanoBanana2MultiTurnChat:
@@ -31,7 +31,12 @@ class NanoBanana2MultiTurnChat:
 
     @classmethod
     def INPUT_TYPES(s):
-        model_list = ["gemini-3.1-flash-image-preview"]
+        model_list = [
+            "gemini-3.1-flash-image-preview",
+            "gemini-2.5-flash-image-preview",
+            "gemini-2.5-flash-image-preview-oss",
+            "nano-banana-2",
+        ]
         return {
             "required": {
                 "model_name": (model_list, {"default": model_list[0]}),
@@ -109,19 +114,7 @@ class NanoBanana2MultiTurnChat:
 
     def _create_client(self, approach, model_name):
         """Create a new client based on the approach."""
-        if approach == "VERTEXAI":
-            if not PROJECT_ID or not LOCATION:
-                raise ValueError("PROJECT_ID or LOCATION not configured in .env for Vertex AI approach")
-
-            location = "global" if "gemini-3" in model_name else LOCATION
-            client = genai.Client(vertexai=True, project=PROJECT_ID, location=location)
-        else:
-            if not GOOGLE_API_KEY:
-                raise ValueError("GOOGLE_API_KEY not configured in .env for API approach")
-
-            client = genai.Client(api_key=GOOGLE_API_KEY)
-
-        return client
+        return create_client(approach, model_name)
 
     def generate_multiturn_image(self, model_name, prompt, reset_chat=False, use_search=False, use_image_search=False,
                                   aspect_ratio="1:1", image_size="2K", temperature=1.0,

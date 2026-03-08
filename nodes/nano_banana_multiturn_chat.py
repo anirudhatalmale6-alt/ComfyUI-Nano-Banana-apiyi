@@ -4,7 +4,7 @@ from PIL import Image
 from google import genai
 from google.genai import types
 
-from ..core.auth import detect_approach, PROJECT_ID, LOCATION, GOOGLE_API_KEY
+from ..core.auth import detect_approach, create_client, PROJECT_ID, LOCATION, GOOGLE_API_KEY
 from ..utils.image_utils import tensor_to_pil
 
 class NanoBananaMultiTurnChat:
@@ -26,7 +26,17 @@ class NanoBananaMultiTurnChat:
 
     @classmethod
     def INPUT_TYPES(s):
-        model_list = ["gemini-3-pro-image-preview"]
+        model_list = [
+            "gemini-3-pro-image-preview",
+            "gemini-3-pro-image-preview-1k",
+            "gemini-3-pro-image-preview-2k",
+            "gemini-3-pro-image-preview-4k",
+            "gemini-3-pro-image-preview-oss",
+            "gemini-2.5-flash-image",
+            "gemini-2.5-flash-image-oss",
+            "nano-banana",
+            "nano-banana-pro",
+        ]
         return {
             "required": {
                 "model_name": (model_list, {"default": model_list[0]}),
@@ -184,26 +194,7 @@ class NanoBananaMultiTurnChat:
 
     def _create_client(self, approach, model_name):
         """Create a new client based on the approach."""
-        if approach == "VERTEXAI":
-            if not PROJECT_ID or not LOCATION:
-                raise ValueError("PROJECT_ID or LOCATION not configured in .env for Vertex AI approach")
-
-            # Use global location for nanobanana models as they may only be available on global endpoint
-            location = "global" if "gemini-3-pro" in model_name else LOCATION
-            client = genai.Client(
-                vertexai=True,
-                project=PROJECT_ID,
-                location=location
-            )
-        else:  # API approach
-            if not GOOGLE_API_KEY:
-                raise ValueError("GOOGLE_API_KEY not configured in .env for API approach")
-
-            client = genai.Client(
-                api_key=GOOGLE_API_KEY
-            )
-
-        return client
+        return create_client(approach, model_name)
 
     def _extract_metadata(self, response):
         """Extract any relevant metadata from the response."""

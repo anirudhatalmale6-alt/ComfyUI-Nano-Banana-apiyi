@@ -4,7 +4,7 @@ from PIL import Image
 from google import genai
 from google.genai import types
 
-from ..core.auth import detect_approach, PROJECT_ID, LOCATION, GOOGLE_API_KEY
+from ..core.auth import detect_approach, create_client, PROJECT_ID, LOCATION, GOOGLE_API_KEY
 from ..utils.image_utils import tensor_to_pil
 
 class NanoBanana2AIO:
@@ -22,7 +22,12 @@ class NanoBanana2AIO:
 
     @classmethod
     def INPUT_TYPES(s):
-        model_list = ["gemini-3.1-flash-image-preview"]
+        model_list = [
+            "gemini-3.1-flash-image-preview",
+            "gemini-2.5-flash-image-preview",
+            "gemini-2.5-flash-image-preview-oss",
+            "nano-banana-2",
+        ]
         return {
             "required": {
                 "model_name": (model_list, {"default": model_list[0]}),
@@ -161,17 +166,7 @@ class NanoBanana2AIO:
 
     def _generate_single_image(self, model_name, prompt, use_search, use_image_search, approach, contents, aspect_ratio, image_size, temperature):
         """Generate a single image with grounding capabilities."""
-        if approach == "VERTEXAI":
-            if not PROJECT_ID or not LOCATION:
-                return self._handle_error("PROJECT_ID or LOCATION not configured in .env for Vertex AI approach")
-
-            location = "global" if "gemini-3" in model_name else LOCATION
-            client = genai.Client(vertexai=True, project=PROJECT_ID, location=location)
-        else:
-            if not GOOGLE_API_KEY:
-                return self._handle_error("GOOGLE_API_KEY not configured in .env for API approach")
-
-            client = genai.Client(api_key=GOOGLE_API_KEY)
+        client = create_client(approach, model_name)
 
         config = self._create_config(aspect_ratio, image_size, temperature, use_search, use_image_search, model_name)
 
@@ -234,17 +229,7 @@ class NanoBanana2AIO:
             current_prompt = f"{prompt} (Image {i+1} of {image_count})"
             current_contents = [current_prompt] + contents[1:]
 
-            if approach == "VERTEXAI":
-                if not PROJECT_ID or not LOCATION:
-                    return self._handle_error("PROJECT_ID or LOCATION not configured in .env for Vertex AI approach")
-
-                location = "global" if "gemini-3" in model_name else LOCATION
-                client = genai.Client(vertexai=True, project=PROJECT_ID, location=location)
-            else:
-                if not GOOGLE_API_KEY:
-                    return self._handle_error("GOOGLE_API_KEY not configured in .env for API approach")
-
-                client = genai.Client(api_key=GOOGLE_API_KEY)
+            client = create_client(approach, model_name)
 
             config = self._create_config(aspect_ratio, image_size, temperature, use_search, use_image_search, model_name)
 

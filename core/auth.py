@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 from dotenv import load_dotenv
 
 from google import genai
@@ -6,8 +7,16 @@ from google.genai.types import HttpOptions
 
 print("--- Initializing Core Authentication ---")
 
-# Load environment variables from a .env file
-load_dotenv()
+# Load .env from the plugin directory (ComfyUI_Nano_Banana/)
+_plugin_dir = Path(__file__).resolve().parent.parent
+_env_path = _plugin_dir / ".env"
+if _env_path.exists():
+    load_dotenv(_env_path)
+    print(f"✅ Loaded .env from {_env_path}")
+else:
+    # Fallback: try current working directory
+    load_dotenv()
+    print(f"⚠️ No .env found at {_env_path}, trying default locations")
 
 PROJECT_ID = os.getenv("PROJECT_ID")
 LOCATION = os.getenv("LOCATION")

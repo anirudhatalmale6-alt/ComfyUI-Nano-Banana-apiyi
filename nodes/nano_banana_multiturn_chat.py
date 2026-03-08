@@ -109,6 +109,9 @@ class NanoBananaMultiTurnChat:
                 prev_image = Image.open(io.BytesIO(self.last_image_data))
                 contents.insert(0, prev_image)
 
+            # Auto-resolve image_size from model name suffix
+            image_size = self._resolve_image_size(model_name, image_size)
+
             # Create the chat session with configuration for this request
             image_config_kwargs = {
                 "image_size": image_size
@@ -191,6 +194,16 @@ class NanoBananaMultiTurnChat:
             return self._handle_error(f"TypeError in NanoBananaMultiTurnChat: {e}")
         except Exception as e:
             return self._handle_error(f"{type(e).__name__} in NanoBananaMultiTurnChat: {e}")
+
+    def _resolve_image_size(self, model_name, image_size):
+        """Auto-detect resolution from model name suffix to avoid conflicts."""
+        suffix_map = {"-1k": "1K", "-2k": "2K", "-4k": "4K"}
+        for suffix, size in suffix_map.items():
+            if model_name.endswith(suffix):
+                if image_size != size:
+                    print(f"Info: Model {model_name} has built-in {size} resolution, overriding image_size from {image_size} to {size}")
+                return size
+        return image_size
 
     def _create_client(self, approach, model_name):
         """Create a new client based on the approach."""

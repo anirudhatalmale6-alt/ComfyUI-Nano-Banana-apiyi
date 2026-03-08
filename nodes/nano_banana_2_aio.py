@@ -54,11 +54,24 @@ class NanoBanana2AIO:
     FUNCTION = "generate_unified"
     CATEGORY = "Ru4ls/NanoBanana"
 
+    def _resolve_image_size(self, model_name, image_size):
+        """Auto-detect resolution from model name suffix to avoid conflicts."""
+        suffix_map = {"-1k": "1K", "-2k": "2K", "-4k": "4K"}
+        for suffix, size in suffix_map.items():
+            if model_name.endswith(suffix):
+                if image_size != size:
+                    print(f"Info: Model {model_name} has built-in {size} resolution, overriding image_size from {image_size} to {size}")
+                return size
+        return image_size
+
     def _create_config(self, aspect_ratio, image_size, temperature, use_search, use_image_search, model_name):
         """Centralized config creation with proper AFC handling and Image Search support."""
         if "preview" in model_name and not self._preview_warning_shown:
             print(f"Warning: Using preview model {model_name} which may have unstable tool support")
             self._preview_warning_shown = True
+
+        # Auto-resolve image_size from model name suffix
+        image_size = self._resolve_image_size(model_name, image_size)
 
         image_config_kwargs = {
             "image_size": image_size

@@ -1,4 +1,4 @@
-import io, torch, numpy as np
+import io, logging, torch, numpy as np
 from PIL import Image
 
 from google import genai
@@ -6,6 +6,8 @@ from google.genai import types
 
 from ..core.auth import detect_approach, create_client, PROJECT_ID, LOCATION, GOOGLE_API_KEY
 from ..utils.image_utils import tensor_to_pil
+
+logger = logging.getLogger("NanoBanana")
 
 class NanoBananaMultiTurnChat:
     """
@@ -58,9 +60,9 @@ class NanoBananaMultiTurnChat:
     CATEGORY = "Ru4ls/NanoBanana"
 
     def _handle_error(self, message):
-        print(f"\033[91mERROR: {message}\033[0m")
-        # Always return the same number of outputs to maintain ComfyUI compatibility
-        return (torch.zeros(1, 64, 64, 3), "", "", [])
+        logger.error(f"NanoBananaMultiTurnChat: {message}")
+        print(f"[NanoBananaMultiTurnChat ERROR] {message}")
+        return (torch.zeros(1, 64, 64, 3), f"ERROR: {message}", "", [])
 
     def generate_multiturn_image(self, model_name, prompt, reset_chat=False, aspect_ratio="1:1", image_size="2K", temperature=1.0, image_input=None):
         try:

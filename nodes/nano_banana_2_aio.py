@@ -1,4 +1,4 @@
-import io, torch, numpy as np
+import io, logging, torch, numpy as np
 from PIL import Image
 
 from google import genai
@@ -6,6 +6,8 @@ from google.genai import types
 
 from ..core.auth import detect_approach, create_client, PROJECT_ID, LOCATION, GOOGLE_API_KEY
 from ..utils.image_utils import tensor_to_pil
+
+logger = logging.getLogger("NanoBanana")
 
 class NanoBanana2AIO:
     """
@@ -117,8 +119,9 @@ class NanoBanana2AIO:
         return config
 
     def _handle_error(self, message):
-        print(f"\033[91mERROR: {message}\033[0m")
-        return (torch.zeros(1, 64, 64, 3), "", "")
+        logger.error(f"NanoBanana2AIO: {message}")
+        print(f"[NanoBanana2AIO ERROR] {message}")
+        return (torch.zeros(1, 64, 64, 3), "", f"ERROR: {message}")
 
     def generate_unified(self, model_name, prompt, image_count=1, use_search=True, use_image_search=False, 
                          image_1=None, image_2=None, image_3=None, image_4=None, image_5=None, 

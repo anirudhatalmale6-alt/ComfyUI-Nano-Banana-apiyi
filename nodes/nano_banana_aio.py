@@ -1,4 +1,4 @@
-import io, torch, numpy as np
+import io, logging, torch, numpy as np
 from PIL import Image
 
 from google import genai
@@ -6,6 +6,8 @@ from google.genai import types
 
 from ..core.auth import detect_approach, create_client, PROJECT_ID, LOCATION, GOOGLE_API_KEY
 from ..utils.image_utils import tensor_to_pil
+
+logger = logging.getLogger("NanoBanana")
 
 class NanoBananaAIO:
     """A unified multimodal node combining all features: single/multiple image generation, grounding, search, and thinking capabilities."""
@@ -93,9 +95,10 @@ class NanoBananaAIO:
         return config
 
     def _handle_error(self, message):
-        print(f"\033[91mERROR: {message}\033[0m")
+        logger.error(f"NanoBananaAIO: {message}")
+        print(f"[NanoBananaAIO ERROR] {message}")
         # Always return the same number of outputs to maintain ComfyUI compatibility
-        return (torch.zeros(1, 64, 64, 3), "", "")
+        return (torch.zeros(1, 64, 64, 3), "", f"ERROR: {message}")
 
     def generate_unified(self, model_name, prompt, image_count=1, use_search=True, image_1=None, image_2=None, image_3=None, image_4=None, image_5=None, image_6=None, aspect_ratio="1:1", image_size="2K", temperature=1.0):
         try:

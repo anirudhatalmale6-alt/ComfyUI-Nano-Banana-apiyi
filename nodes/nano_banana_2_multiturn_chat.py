@@ -1,4 +1,4 @@
-import io, torch, numpy as np
+import io, logging, torch, numpy as np
 from PIL import Image
 
 from google import genai
@@ -6,6 +6,8 @@ from google.genai import types
 
 from ..core.auth import detect_approach, create_client, PROJECT_ID, LOCATION, GOOGLE_API_KEY
 from ..utils.image_utils import tensor_to_pil
+
+logger = logging.getLogger("NanoBanana")
 
 class NanoBanana2MultiTurnChat:
     """
@@ -64,8 +66,9 @@ class NanoBanana2MultiTurnChat:
     CATEGORY = "Ru4ls/NanoBanana"
 
     def _handle_error(self, message):
-        print(f"\033[91mERROR: {message}\033[0m")
-        return (torch.zeros(1, 64, 64, 3), "", "", [])
+        logger.error(f"NanoBanana2MultiTurnChat: {message}")
+        print(f"[NanoBanana2MultiTurnChat ERROR] {message}")
+        return (torch.zeros(1, 64, 64, 3), f"ERROR: {message}", "", [])
 
     def _resolve_image_size(self, model_name, image_size):
         """Auto-detect resolution from model name suffix to avoid conflicts."""

@@ -64,7 +64,7 @@ def create_client(approach, model_name=None):
             return genai.Client(
                 api_key=GOOGLE_API_KEY,
                 http_options=HttpOptions(
-                    api_version='v1beta',
+                    api_version='v1',
                     base_url=CUSTOM_BASE_URL
                 )
             )

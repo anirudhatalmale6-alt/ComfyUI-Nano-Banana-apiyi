@@ -148,12 +148,11 @@ class NanoBanana2AIO:
             if image_size not in valid_sizes:
                 return self._handle_error(f"Invalid image size. Valid options: {', '.join(valid_sizes)}")
 
-            # Build contents: reference images first, then prompt
-            images = [image_1, image_2, image_3, image_4, image_5, image_6,
-                      image_7, image_8, image_9, image_10, image_11, image_12,
+            contents = [prompt]
+            images = [image_1, image_2, image_3, image_4, image_5, image_6, 
+                      image_7, image_8, image_9, image_10, image_11, image_12, 
                       image_13, image_14]
-
-            contents = []
+            
             image_count_provided = 0
             for img_tensor in images:
                 if img_tensor is not None:
@@ -162,9 +161,6 @@ class NanoBanana2AIO:
 
             if image_count_provided > 14:
                 return self._handle_error("Maximum 14 reference images supported")
-
-            # Put prompt after images so the model treats images as references
-            contents.append(prompt)
 
             if image_count == 1:
                 return self._generate_single_image(
@@ -220,30 +216,13 @@ class NanoBanana2AIO:
         grounding_sources = self.extract_grounding_data(response)
 
         if image_bytes is None:
-            # Model returned text-only — retry with IMAGE-only modality to force image generation
-            print(f"Info: No image in first response, retrying with response_modalities=['IMAGE']...")
-            retry_config = types.GenerateContentConfig(
-                response_modalities=["IMAGE"],
-                image_config=types.ImageConfig(**({
-                    "image_size": self._resolve_image_size(model_name, image_size),
-                    **({"aspect_ratio": aspect_ratio} if aspect_ratio != "Auto" else {})
-                })),
-                temperature=temperature,
-                automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True)
-            )
-            response = client.models.generate_content(
-                model=model_name,
-                contents=contents,
-                config=retry_config
-            )
-            if response.candidates:
-                for part in response.candidates[0].content.parts:
-                    if part.inline_data and image_bytes is None:
-                        image_bytes = part.inline_data.data
-
-            if image_bytes is None:
-                print(f"Debug: Response parts - {response.candidates[0].content.parts if response.candidates else 'No candidates'}")
-                return self._handle_error("No image data found in the API response (even after retry).")
+            # Debug: print response parts to help diagnose the issue
+            print(f"Debug: Full response - {response}")
+            print(f"Debug: Response parts - {response.candidates[0].content.parts}")
+            print(f"Debug: Text response - {text_response[:500] if text_response else 'None'}")
+            if grounding_sources:
+                print(f"Debug: Grounding sources - {grounding_sources[:500] if grounding_sources else 'None'}")
+            return self._handle_error("No image data found in the API response.")
 
         pil_image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
 
@@ -251,8 +230,8 @@ class NanoBanana2AIO:
         image_tensor = torch.from_numpy(image_np)[None,]
 
         if approach == "API":
-            text_response = text_response if text_response else ""
-            grounding_sources = grounding_sources if grounding_sources else ""
+            text_response = "To access the full text response, please use Vertex AI approach with PROJECT_ID and LOCATION set up."
+            grounding_sources = f"{grounding_sources}\n\nFor full grounding capabilities, please use Vertex AI approach with PROJECT_ID and LOCATION configured."
 
         return (image_tensor, text_response, grounding_sources)
 
@@ -264,8 +243,7 @@ class NanoBanana2AIO:
 
         for i in range(image_count):
             current_prompt = f"{prompt} (Image {i+1} of {image_count})"
-            # Keep reference images (everything before the last element which is the prompt), then add modified prompt
-            current_contents = contents[:-1] + [current_prompt]
+            current_contents = [current_prompt] + contents[1:]
 
             client = create_client(approach, model_name)
 

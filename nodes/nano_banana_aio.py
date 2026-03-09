@@ -115,22 +115,21 @@ class NanoBananaAIO:
                 return self._handle_error("Image count must be between 1 and 10")
 
             # Validate aspect ratio
-            valid_ratios = ["1:1", "1:4", "1:8", "2:3", "3:2", "3:4", "4:1", "4:3", "4:5", "5:4", "8:1", "9:16", "16:9", "21:9", "Auto"]
+            valid_ratios = ["1:1", "2:3", "3:2", "3:4", "4:3", "4:5", "5:4", "9:16", "16:9", "21:9", "Auto"]
             if aspect_ratio not in valid_ratios:
                 return self._handle_error(f"Invalid aspect ratio. Valid options: {', '.join(valid_ratios)}")
 
             # Validate image_size
-            valid_sizes = ["512px", "1K", "2K", "4K"]
+            valid_sizes = ["1K", "2K", "4K"]
             if image_size not in valid_sizes:
                 return self._handle_error(f"Invalid image size. Valid options: {', '.join(valid_sizes)}")
 
-            # Build contents: reference images first, then prompt
+            # Prepare contents
+            contents = [prompt]
             images = [image_1, image_2, image_3, image_4, image_5, image_6]
-            contents = []
             for img_tensor in images:
                 if img_tensor is not None:
                     contents.append(tensor_to_pil(img_tensor))
-            contents.append(prompt)
 
             # If image_count is 1, behave like single image generation, otherwise generate multiple
             if image_count == 1:
@@ -195,39 +194,17 @@ class NanoBananaAIO:
         grounding_sources = self.extract_grounding_data(response)
 
         if image_bytes is None:
-            # Model returned text-only — retry with IMAGE-only modality to force image generation
-            print(f"Info: No image in first response, retrying with response_modalities=['IMAGE']...")
-            retry_config = types.GenerateContentConfig(
-                response_modalities=["IMAGE"],
-                image_config=types.ImageConfig(**({
-                    "image_size": self._resolve_image_size(model_name, image_size),
-                    **({"aspect_ratio": aspect_ratio} if aspect_ratio != "Auto" else {})
-                })),
-                temperature=temperature,
-                automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True)
-            )
-            response = client.models.generate_content(
-                model=model_name,
-                contents=contents,
-                config=retry_config
-            )
-            if response.candidates:
-                for part in response.candidates[0].content.parts:
-                    if part.inline_data and image_bytes is None:
-                        image_bytes = part.inline_data.data
-
-            if image_bytes is None:
-                print(f"Debug: Response parts - {response.candidates[0].content.parts if response.candidates else 'No candidates'}")
-                return self._handle_error("No image data found in the API response (even after retry).")
+            return self._handle_error("No image data found in the API response.")
 
         pil_image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
 
         image_np = np.array(pil_image).astype(np.float32) / 255.0
         image_tensor = torch.from_numpy(image_np)[None,]
 
+        # For API approach, provide a helpful message about needing Vertex AI for full text response
         if approach == "API":
-            text_response = text_response if text_response else ""
-            grounding_sources = grounding_sources if grounding_sources else ""
+            text_response = "To access the full text response, please use Vertex AI approach with PROJECT_ID and LOCATION set up. Visit https://cloud.google.com/vertex-ai/docs/generative-ai/learn/quickstarts for setup instructions."
+            grounding_sources = f"{grounding_sources}\n\nFor full grounding capabilities, please use Vertex AI approach with PROJECT_ID and LOCATION configured.\nVisit https://cloud.google.com/vertex-ai/docs/generative-ai/learn/quickstarts for setup instructions."
 
         return (image_tensor, text_response, grounding_sources)
 
@@ -242,7 +219,7 @@ class NanoBananaAIO:
             current_prompt = f"{prompt} (Image {i+1} of {image_count})"
 
             # Create a copy of contents with the updated prompt for this iteration
-            current_contents = contents[:-1] + [current_prompt]  # Keep reference images, update prompt
+            current_contents = [current_prompt] + contents[1:]  # Keep images, update prompt
 
             client = create_client(approach, model_name)
 

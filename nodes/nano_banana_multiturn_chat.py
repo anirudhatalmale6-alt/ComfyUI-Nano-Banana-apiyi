@@ -44,8 +44,8 @@ class NanoBananaMultiTurnChat:
                 "model_name": (model_list, {"default": model_list[0]}),
                 "prompt": ("STRING", {"multiline": True, "default": "Create an image of a clear perfume bottle sitting on a vanity."}),
                 "reset_chat": ("BOOLEAN", {"default": False}),
-                "aspect_ratio": (["1:1", "2:3", "3:2", "3:4", "4:3", "4:5", "5:4", "9:16", "16:9", "21:9", "Auto"], {"default": "1:1"}),
-                "image_size": (["1K", "2K", "4K"], {"default": "2K"}),
+                "aspect_ratio": (["1:1", "1:4", "1:8", "2:3", "3:2", "3:4", "4:1", "4:3", "4:5", "5:4", "8:1", "9:16", "16:9", "21:9", "Auto"], {"default": "1:1"}),
+                "image_size": (["512px", "1K", "2K", "4K"], {"default": "2K"}),
                 "temperature": ("FLOAT", {"default": 1.0, "min": 0.0, "max": 2.0, "step": 0.1}),
             },
             "optional": {

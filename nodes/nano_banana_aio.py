@@ -38,8 +38,8 @@ class NanoBananaAIO:
             "optional": {
                 "image_1": ("IMAGE",), "image_2": ("IMAGE",), "image_3": ("IMAGE",),
                 "image_4": ("IMAGE",), "image_5": ("IMAGE",), "image_6": ("IMAGE",),
-                "aspect_ratio": (["1:1", "2:3", "3:2", "3:4", "4:3", "4:5", "5:4", "9:16", "16:9", "21:9", "Auto"], {"default": "1:1"}),
-                "image_size": (["1K", "2K", "4K"], {"default": "2K"}),
+                "aspect_ratio": (["1:1", "1:4", "1:8", "2:3", "3:2", "3:4", "4:1", "4:3", "4:5", "5:4", "8:1", "9:16", "16:9", "21:9", "Auto"], {"default": "1:1"}),
+                "image_size": (["512px", "1K", "2K", "4K"], {"default": "2K"}),
                 "temperature": ("FLOAT", {"default": 1.0, "min": 0.0, "max": 2.0, "step": 0.1}),
             }
         }

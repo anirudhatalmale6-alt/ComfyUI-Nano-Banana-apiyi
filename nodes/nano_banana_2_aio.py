@@ -25,9 +25,18 @@ class NanoBanana2AIO:
     @classmethod
     def INPUT_TYPES(s):
         model_list = [
+            "gemini-3-pro-image-preview",
+            "gemini-3-pro-image-preview-1k",
+            "gemini-3-pro-image-preview-2k",
+            "gemini-3-pro-image-preview-4k",
+            "gemini-3-pro-image-preview-oss",
             "gemini-3.1-flash-image-preview",
+            "gemini-2.5-flash-image",
+            "gemini-2.5-flash-image-oss",
             "gemini-2.5-flash-image-preview",
             "gemini-2.5-flash-image-preview-oss",
+            "nano-banana",
+            "nano-banana-pro",
             "nano-banana-2",
         ]
         return {

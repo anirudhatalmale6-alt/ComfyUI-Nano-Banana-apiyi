@@ -1,5 +1,7 @@
 import { app } from "../../scripts/app.js";
 
+console.log("[NanoBanana] Dynamic widget filtering extension loading...");
+
 // Model capabilities: which aspect ratios and image sizes each model supports
 const MODEL_CAPS = {
     // Pro models — 10 ratios, resolution depends on suffix
@@ -28,7 +30,9 @@ const NODE_TYPES = ["NanoBananaAIO", "NanoBanana2AIO", "NanoBananaMultiTurnChat"
 
 function updateComboWidget(widget, newValues, defaultValue) {
     if (!widget) return;
+    // Update the options values array
     widget.options.values = newValues;
+    // If current value isn't in the new list, reset to default
     if (!newValues.includes(widget.value)) {
         widget.value = defaultValue || newValues[0];
     }
@@ -36,7 +40,12 @@ function updateComboWidget(widget, newValues, defaultValue) {
 
 function applyModelCaps(node, modelName) {
     const caps = MODEL_CAPS[modelName];
-    if (!caps) return;
+    if (!caps) {
+        console.log(`[NanoBanana] No caps found for model: ${modelName}`);
+        return;
+    }
+
+    console.log(`[NanoBanana] Applying caps for ${modelName}: ${caps.ratios.length} ratios, ${caps.sizes.length} sizes`);
 
     const ratioWidget = node.widgets.find(w => w.name === "aspect_ratio");
     const sizeWidget = node.widgets.find(w => w.name === "image_size");
@@ -49,28 +58,47 @@ function applyModelCaps(node, modelName) {
     }
 
     // Trigger canvas redraw
-    if (app.graph) {
-        app.graph.setDirtyCanvas(true);
-    }
+    node.setDirtyCanvas(true, false);
 }
 
 app.registerExtension({
     name: "NanoBanana.DynamicWidgets",
 
     async nodeCreated(node) {
-        if (!NODE_TYPES.includes(node.comfyClass)) return;
+        // Check both comfyClass and type for compatibility
+        const nodeType = node.comfyClass || node.type;
+        if (!NODE_TYPES.includes(nodeType)) return;
+
+        console.log(`[NanoBanana] Node created: ${nodeType}`);
 
         const modelWidget = node.widgets.find(w => w.name === "model_name");
-        if (!modelWidget) return;
+        if (!modelWidget) {
+            console.log("[NanoBanana] model_name widget not found!");
+            return;
+        }
 
-        // Apply caps on initial load
-        setTimeout(() => applyModelCaps(node, modelWidget.value), 100);
+        // Apply caps on initial load (after widgets are fully initialized)
+        const origOnConfigure = node.onConfigure;
+        node.onConfigure = function(config) {
+            if (origOnConfigure) origOnConfigure.call(this, config);
+            const mw = this.widgets.find(w => w.name === "model_name");
+            if (mw) {
+                console.log(`[NanoBanana] onConfigure: applying caps for ${mw.value}`);
+                applyModelCaps(this, mw.value);
+            }
+        };
 
-        // Hook into model change
+        // Also apply on initial creation
+        setTimeout(() => applyModelCaps(node, modelWidget.value), 200);
+
+        // Hook into model change callback
         const origCallback = modelWidget.callback;
         modelWidget.callback = function(value) {
+            console.log(`[NanoBanana] Model changed to: ${value}`);
             applyModelCaps(node, value);
             if (origCallback) origCallback.call(this, value);
         };
     },
 });
+
+console.log("[NanoBanana] Dynamic widget filtering extension loaded.");
